@@ -1,0 +1,21 @@
+{
+  "name": "sh",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.3",
+    "ejs": "~2.5.6",
+    "express": "^4.15.4",
+    "moment": "^2.18.1",
+    "mongoose": "^4.11.10",
+    "morgan": "~1.8.1",
+    "serve-favicon": "~2.4.2",
+		"connect": "~2.14.4",
+    "socket.io": "^1.7.2"
+  }
+}

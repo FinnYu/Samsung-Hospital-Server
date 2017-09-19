@@ -1,0 +1,15 @@
+error: Could not read .foreverignore file.
+error: ENOENT: no such file or directory, open '/home/smhi/server/.foreverignore'
+connect.multipart() will be removed in connect 3.0
+visit https://github.com/senchalabs/connect/wiki/Connect-3.0 for alternatives
+connect.limit() will be removed in connect 3.0
+(node:21314) DeprecationWarning: `open()` is deprecated in mongoose >= 4.11.0, use `openUri()` instead, or set the `useMongoClient` option if using `connect()` or `createConnection()`. See http://mongoosejs.com/docs/connections.html#use-mongo-client
+Express server listening on port 5950
+mongodb connected
+{ _id: 59b589897b03c84508f49768,
+  name: 'dummy',
+  pw: '$2a$10$AGwylraG7v8TwQbEX7qoP.WCOB6174iMC/mB/aYYP9WDpyp3CyHYq',
+  id: 'hhhh',
+  uid: 1,
+  __v: 0 }
+[0mGET /auth/login/user?id=hhhh&pw=hhhh [32m200 [0m221.904 ms - 32[0m

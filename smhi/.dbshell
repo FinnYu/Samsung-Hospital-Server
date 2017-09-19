@@ -1,0 +1,34 @@
+show dbs
+show dbs
+show collections
+db.posts.drop()
+db.ids.drop()
+db.users.drop()
+show collections
+db.posts.find()
+show collections
+ls
+db.ids.drop()
+db.posts.drop()
+db.users.drop()
+show collections
+db.posts.find()
+;
+show collections
+db.posts.find()
+db.posts.find()
+show collections
+db.ids.drop()
+db.posts.drop()
+db.replies.drop()
+db.users.drop()
+show collections
+db.users.find()
+db.users.find()
+show collections
+db.ids.drop()
+db.posts.drop()
+db.replies.drop()
+db.users.drop()
+db.dropDatabase()
+ls
