@@ -49,6 +49,7 @@ io.sockets.on('connection', function (socket) {
       });
 
       io.sockets.in(room_id.toString()).emit('new message', {
+        'uid': uid,
         'name': name,
         'message': message
       });
