@@ -24,7 +24,6 @@ var server = express().listen(5951);
 var io = require('socket.io').listen(server);
 
 io.sockets.on('connection', function (socket) {
-  console.log("QQQ");
   socket.on('new message', function (uid, room_id, name, message) {
 
     var options = { upsert: true, new: true, setDefaultsOnInsert: true };
@@ -62,6 +61,25 @@ io.sockets.on('connection', function (socket) {
     console.log(data);
   });
 
+  socket.on('read', function(uid, room_id){
+    Room.findOne({room_id: room_id}, function(err, room) {
+      if (err) throw err;
+
+      for (i = 0; i < room.users.length; i ++) {
+        if (room.users[i].uid == uid) {
+          var user = room.users[i];
+          user.last_cid = room.last_cid;
+
+          room.users.set(i, user);
+          room.save(function (err) {
+            if (err) throw err;
+          });
+          break;
+        }
+      }
+    });
+  });
+
   // 사용자가 접속을 끊을 경우 처리할 리스너 함수
   socket.on('left', function(){
     socket.leave(socket.room);
@@ -71,10 +89,15 @@ io.sockets.on('connection', function (socket) {
 router.post('/makeRoom', function (req, res, next) {
   var options = { upsert: true, new: true, setDefaultsOnInsert: true };
   Id.findOneAndUpdate({}, {$inc: {room_id: 1}}, options, function(err, result) {
-
     var newRoom = new Room();
 
-    console.log(req.body);
+    if (req.body.pw + 0 == 0) {
+      res.json({
+        message: 'failure',
+        detail: 'pw not entered'
+      });
+      return;
+    }
 
     if (result == null)
       newRoom.room_id = 1;
@@ -86,15 +109,79 @@ router.post('/makeRoom', function (req, res, next) {
     newRoom.to = req.body.to;
     newRoom.name = req.body.name;
     newRoom.desc = req.body.desc;
-    newRoom.pw = req.body.pw;
+    var pw_hash = bcrypt.hashSync(req.body.pw);
+    newRoom.pw = pw_hash;
     newRoom.last_cid = 0;
-    newRoom.users = [newRoom.cre_uid];
+    newRoom.users = [{
+      uid : req.body.uid,
+      name : req.body.username,
+      last_cid : 0
+    }];
 
-    newRoom.limit = req.body.limit + 0;
+    if (req.body.limit > 0)
+      newRoom.limit = req.body.limit;
+    else
+      newRoom.limit = 0;
 
-    console.log(newRoom);
+    User.findOne({uid: req.body.uid}, function(err, user) {
+      if (err) throw err;
 
-    newRoom.save(function (err) {
+      user.chatRooms.push(newRoom.room_id);
+      user.save(function(err) {
+        if (err) throw err;
+      });
+
+      newRoom.save(function (err) {
+        if (err) throw err;
+        res.json({
+          message: 'success'
+        });
+      });
+    });
+  });
+});
+
+router.post('/joinRoom', function (req, res, next) {
+  var room_id = req.body.room_id;
+  var uid = req.body.uid;
+  var name = req.body.name;
+  var pw = req.body.pw;
+  Room.findOne({room_id: req.body.room_id}, function(err, result) {
+
+    if (result == null) throw err;
+    if (result.limit != 0 && result.users.length >= result.limit) {
+      res.json({
+        message: 'failure',
+        detail: 'user limit exceed'
+      });
+      return;
+    }
+
+    if (!bcrypt.compareSync(pw, result.pw)) {
+      res.json({
+        message: 'failure',
+        detail: 'pw incorrect'
+      });
+      return;
+    }
+
+    User.findOne({uid: req.body.uid}, function(err, user) {
+      if (err) throw err;
+      if (user.chatRooms == undefined)
+        user.chatRooms = [];
+      user.chatRooms.push(room_id);
+      user.save(function(err) {
+        if (err) throw err;
+      });
+    });
+
+    result.users.push({
+      uid : uid,
+      name : name,
+      last_cid : 0
+    });
+
+    result.save(function (err) {
       if (err) throw err;
       res.json({
         message: 'success'
@@ -114,9 +201,11 @@ router.post('/changeRoom', function (req, res, next) {
     result.desc = req.body.desc;
     result.last_cid = req.body.last_cid;
 
-    if (req.body.pw + 0 != 0)
-      result.pw = req.body.pw;
-      
+    if (req.body.pw + 0 != 0) {
+      var pw_hash = bcrypt.hashSync(req.body.pw);
+      result.pw = pw_hash;
+    }
+
     result.limit = req.body.limit + 0;
 
     console.log(result);

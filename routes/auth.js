@@ -26,7 +26,7 @@ router.get('/login/user', function (req, res, next) {
       delete user.pw
       res.json({
         message: "success",
-        result: {uid: user.uid, name: user.name}
+        result: user
       });
     } else {
       res.json({
@@ -35,6 +35,28 @@ router.get('/login/user', function (req, res, next) {
       });
       return;
     }
+  })
+});
+
+
+router.get('/info/user', function (req, res, next) {
+
+  User.findOne({uid: req.query.uid}, function(err, user) {
+    if (err) throw err;
+
+    if (user == null) {
+      res.json({
+        message: 'failure',
+        type: 'ID_NOTFOUND'
+      });
+      return;
+    }
+
+    delete user.pw
+    res.json({
+      message: "success",
+      result: user
+    });
   })
 });
 
@@ -84,6 +106,8 @@ router.get('/signup/user', function (req, res, next) {
         newUser.id = id;
         newUser.pw = pw_hash;
         newUser.name = name;
+        newUser.type = 1;
+        newUser.chatRooms = [];
 
         newUser.save(function (err) {
           if (err) throw err;

@@ -6,6 +6,8 @@ var userSchema = new Schema({
   id: String,
   name: String,
   pw: String,
+  chatRooms: Array,
+  type: Number
 });
 
 module.exports = mongoose.model("user", userSchema);

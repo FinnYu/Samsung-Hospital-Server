@@ -107,11 +107,11 @@ router.get('/reply', function(req, res) {
 
     var newReply = new Reply();
     newReply.rid = result.rid;
-    User.find({uid: uid}, function(err, result) {
-      console.log(result[0].name);
+    User.findOne({uid: uid}, function(err, result) {
+      console.log(result.name);
 
       newReply.pid = pid;
-      newReply.author = result[0].name;
+      newReply.author = result.name;
       console.log(newReply.author);
       newReply.contents = contents;
 
