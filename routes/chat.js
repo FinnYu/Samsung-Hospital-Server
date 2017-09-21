@@ -242,7 +242,7 @@ router.get('/roomList', function (req, res, next) {
 
 router.get('/chatList', function (req, res, next) {
   var room_id = req.query.room_id;
-  Chat.find({room_id: room_id}, {name: true, message: true},function(err, result) {
+  Chat.find({room_id: room_id}, {name: true, message: true, uid: true},function(err, result) {
     if (err) throw err;
     console.log(result);
     res.json({
