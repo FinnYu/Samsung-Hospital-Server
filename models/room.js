@@ -12,6 +12,7 @@ var roomSchema = new Schema({
   limit: Number,
   last_cid: Number,
   users: Array,
+  hws: {type: Array, default: []}
 });
 
 module.exports = mongoose.model("room", roomSchema);

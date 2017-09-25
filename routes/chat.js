@@ -12,11 +12,12 @@ var baseTime = 1505574000; // moment('2017-09-17T00:00:00') 의 .unix() 값
 
 // 현재 채팅에서 사용가능한 룸 목록을 저장할 변수
 
-var validate = function(from, to, target) {
-  var time = moment().unix();
+var validate = function(from, to) {
+  var time = moment().unix() - baseTime;
+  console.log(from);
   console.log(time);
-
-  if (from > target || target > to) return false;
+  console.log(to);
+  if (from > time || time > to) return false;
   else return true;
 };
 
@@ -24,24 +25,22 @@ var server = express().listen(5951);
 var io = require('socket.io').listen(server);
 
 io.sockets.on('connection', function (socket) {
-  socket.on('new message', function (uid, room_id, name, message) {
+  socket.on('new message', function (uid, room_id, name, type, message) {
 
     var options = { upsert: true, new: true, setDefaultsOnInsert: true };
-    Room.findOneAndUpdate({room_id: room_id}, {$inc: {last_cid: 1}}, function(err, result) {
+    Room.findOneAndUpdate({room_id: room_id}, {$inc: {last_cid: 1}}, function(err, room) {
       if (err) throw err;
 
-      // var time = moment().unix();
-      // if (!validate(result.from, result.to, time)) {
-      //   res.json({message: 'failure'});
-      //   return;
-      // }
+      if (!validate(room.from, room.to))
+        return;
 
       var newChat = new Chat();
 
-      newChat.cid = result.last_cid;
+      newChat.cid = room.last_cid;
       newChat.room_id = room_id;
       newChat.uid = uid;
       newChat.name = name;
+      newChat.type = type;
       newChat.message = message;
 
       newChat.save(function (err) {
@@ -51,8 +50,21 @@ io.sockets.on('connection', function (socket) {
       io.sockets.in(room_id.toString()).emit('new message', {
         'uid': uid,
         'name': name,
+        'type': type,
         'message': message
       });
+
+      var time = moment().unix() - baseTime;
+      if (type == 2) {
+        room.hws.push({
+            tid: message,
+            time: time,
+            done: []
+          });
+        room.save(function (err){
+          if(err) throw err;
+        });
+      }
     });
   });
 
@@ -101,9 +113,9 @@ router.post('/makeRoom', function (req, res, next) {
     }
 
     if (result == null)
-      newRoom.room_id = 1;
+    newRoom.room_id = 1;
     else
-      newRoom.room_id = result.room_id;
+    newRoom.room_id = result.room_id;
 
     newRoom.cre_uid = req.body.uid;
     newRoom.from = req.body.from;
@@ -120,9 +132,9 @@ router.post('/makeRoom', function (req, res, next) {
     }];
 
     if (req.body.limit > 0)
-      newRoom.limit = req.body.limit;
+    newRoom.limit = req.body.limit;
     else
-      newRoom.limit = 0;
+    newRoom.limit = 0;
 
     User.findOne({uid: req.body.uid}, function(err, user) {
       if (err) throw err;
@@ -147,6 +159,7 @@ router.post('/joinRoom', function (req, res, next) {
   var uid = req.body.uid;
   var name = req.body.name;
   var pw = req.body.pw;
+
   Room.findOne({room_id: req.body.room_id}, function(err, result) {
 
     if (result == null) throw err;
@@ -169,7 +182,7 @@ router.post('/joinRoom', function (req, res, next) {
     User.findOne({uid: req.body.uid}, function(err, user) {
       if (err) throw err;
       if (user.chatRooms == undefined)
-        user.chatRooms = [];
+      user.chatRooms = [];
       user.chatRooms.push(room_id);
       user.save(function(err) {
         if (err) throw err;
@@ -231,19 +244,69 @@ router.post('/deleteRoom', function (req, res, next) {
 });
 
 router.get('/roomList', function (req, res, next) {
-  Room.find({}, function(err, result) {
+  var name = req.query.name.trim();
+  if (name.length <= 0)
+  {
+    var currentTime = time(moment().unix());
+    Room.find({}, function(err, result) {
+        if (err) throw err;
+        res.json({
+          message: 'success',
+          result: result
+        });
+      });
+    }
+    else {
+      var regex = '/*' + name + '/*';
+      Room.find({
+        name: new RegExp(regex)
+      }, function(err, result) {
+        console.log(result);
+        if (err) throw err;
+        res.json({
+          message: 'success',
+          result: result
+        });
+      });
+    }
+  }
+);
+
+router.get('/myRooms', function (req, res, next) {
+  var uid = req.query.uid;
+  User.findOne({uid: uid}, function(err, user){
     if (err) throw err;
-    console.log(result);
+
+    Room.find({
+      room_id: {
+        $in: user.chatRooms
+      }
+    }, function(err, result) {
+      if (err) throw err;
+      res.json({
+        message: 'success',
+        result: result
+      });
+    });
+  });
+});
+
+router.get('/getRoom', function (req, res, next) {
+  var room_id = req.query.room_id;
+
+  Room.findOne({room_id: room_id}, function(err, room){
+    if (err) throw err;
+
     res.json({
       message: 'success',
-      result: result
-    });
+      result: room
+    })
   });
 });
 
 router.get('/chatList', function (req, res, next) {
   var room_id = req.query.room_id;
-  Chat.find({room_id: room_id}, {name: true, message: true, uid: true},function(err, result) {
+  Chat.find({room_id: room_id}, function(err, result) {
     if (err) throw err;
     console.log(result);
     res.json({

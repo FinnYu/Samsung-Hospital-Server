@@ -4,6 +4,7 @@ var Schema = mongoose.Schema;
 var postSchema = new Schema({
   pid: Number,
   uid: Number,
+  tid: Number,
   author : String,
   memo: String,
   rate: Number,

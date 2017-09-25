@@ -60,10 +60,27 @@ router.get('/info/user', function (req, res, next) {
   })
 });
 
+router.get('/setInfo/user', function(req, res, next) {
+  var uid = req.query.uid;
+  var name = req.query.name;
+
+  User.findOne({uid: uid}, function (err, user) {
+    if (err) throw err;
+
+    user.name = name;
+    user.save(function (err) {
+      if (err) throw err;
+      res.json({
+        message: 'success',
+        result: user
+      });
+    });
+  });
+});
+
 router.get('/signup/user', function (req, res, next) {
   var id = req.query.id;
   var pw_hash = bcrypt.hashSync(req.query.pw);
-  var name = req.query.name;
   var create_time = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
   var name = req.query.name;
   var isError = false;
