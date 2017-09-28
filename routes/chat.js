@@ -244,7 +244,11 @@ router.post('/deleteRoom', function (req, res, next) {
 });
 
 router.get('/roomList', function (req, res, next) {
-  var name = req.query.name.trim();
+  var name = req.query.name;
+
+  if (name.length > 0)
+    name = name.trim();
+
   if (name.length <= 0)
   {
     var currentTime = time(moment().unix());
@@ -256,21 +260,20 @@ router.get('/roomList', function (req, res, next) {
         });
       });
     }
-    else {
-      var regex = '/*' + name + '/*';
-      Room.find({
-        name: new RegExp(regex)
-      }, function(err, result) {
-        console.log(result);
-        if (err) throw err;
-        res.json({
-          message: 'success',
-          result: result
-        });
+  else {
+    var regex = '/*' + name + '/*';
+    Room.find({
+      name: new RegExp(regex)
+    }, function(err, result) {
+      console.log(result);
+      if (err) throw err;
+      res.json({
+        message: 'success',
+        result: result
       });
-    }
+    });
   }
-);
+});
 
 router.get('/myRooms', function (req, res, next) {
   var uid = req.query.uid;
