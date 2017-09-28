@@ -73,9 +73,9 @@ router.post('/upload', function(req, res) {
                   var index = room[i].users.findIndex(l => l.uid == uid);
                   if (index != -1)
                   {
-                    var temp = rooms[i].users[index];
+                    var temp = room[i].users[index];
                     temp.name = user.name;
-                    rooms[i].users.set(index, temp);
+                    room[i].users.set(index, temp);
                   }
 
                   room[i].save(function (err) {
