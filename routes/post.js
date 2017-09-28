@@ -48,16 +48,6 @@ router.post('/upload', function(req, res) {
         newPost.save(function (err) {
           if (err) throw err;
 
-          var dirname = "images";
-          var newPath = dirname + "/uploads/" + newPost.pid + ".jpg";
-          fs.writeFile(newPath, data, function (err) {
-            if(err){
-              res.json({message: 'fail'});
-            }else {
-              res.json({message: 'success'});
-            }
-          });
-
           Room.find({
             room_id: {
               $in: user.chatRooms
@@ -80,7 +70,17 @@ router.post('/upload', function(req, res) {
                   target.done.push(elem);
                   room[i].hws.set(j, target);
                   room[i].save(function (err) {
-                    console.log(err);
+                    if (err) throw err;
+
+                    var dirname = "images";
+                    var newPath = dirname + "/uploads/" + newPost.pid + ".jpg";
+                    fs.writeFile(newPath, data, function (err) {
+                      if(err){
+                        res.json({message: 'fail'});
+                      }else {
+                        res.json({message: 'success'});
+                      }
+                    });
                   });
                   break;
                 }
