@@ -179,6 +179,19 @@ router.post('/joinRoom', function (req, res, next) {
       return;
     }
 
+    for (i = 0; i < result.users.length; i ++) {
+      if (result.users[i].uid == uid) {
+        var user = room.users[i];
+        if (user.uid == uid) {
+          res.json({
+            message: 'failure',
+            detail: 'already joined'
+          });
+          return;
+        }
+      }
+    }
+
     User.findOne({uid: req.body.uid}, function(err, user) {
       if (err) throw err;
       if (user.chatRooms == undefined)

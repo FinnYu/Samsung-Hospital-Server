@@ -68,13 +68,13 @@ router.post('/upload', function(req, res) {
             for (i = 0 ; i < room.length ; i ++)
             {
               room[i].hws.sort(function (a, b) {
-                return a.time < b.time ? -1 : a.time > b.tim ? 1 : 0;
+                return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
               });
 
               var elem = {uid: uid, name: user.name};
               for (j = 0 ; j < room[i].hws.length; j ++)
               {
-                if (room[i].hws[j].tid == tid && room[i].hws[j].done.findIndex(k => k.uid === uid) == -1)
+                if (room[i].hws[j].tid == tid && room[i].hws[j].done.findIndex(k => k.uid == uid) == -1)
                 {
                   var target = room[i].hws[j];
                   target.done.push(elem);
