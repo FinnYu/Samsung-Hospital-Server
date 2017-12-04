@@ -7,7 +7,14 @@ var userSchema = new Schema({
   name: String,
   pw: String,
   chatRooms: Array,
-  type: Number
+  type: Number,
+  isFirstLg: String,
+  gender: String,
+  year: String,
+  days: String,
+  questionnaire1: String,
+  questionnaire2: String,
+  questionnaire3: String
 });
 
 module.exports = mongoose.model("user", userSchema);

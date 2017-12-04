@@ -10,7 +10,8 @@ var postSchema = new Schema({
   rate: Number,
   pub: Boolean,
   rep: Number,
-  like: Array
+  like: Array,
+  time: Number
 });
 
 module.exports = mongoose.model("post", postSchema);

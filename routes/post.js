@@ -20,15 +20,21 @@ router.get('/uploads', function (req, res){
 
 });
 
+var baseTime = 1505574000; // moment('2017-09-17T00:00:00') 의 .unix() 값
+
 router.post('/upload', function(req, res) {
-  var uid = req.query.uid;
-  var memo = req.query.memo;
-  var star = req.query.star;
-  var pub = req.query.public;
-  var tid = req.query.tid;
+  var uid = req.body.uid;
+  var memo = req.body.memo;
+  var star = req.body.star;
+  var pub = req.body.public;
+  var tid = req.body.tid;
+
+console.log(1);
 
   fs.readFile(req.files.image.path, function (err, data){
     var options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+console.log(2);
 
     Id.findOneAndUpdate({}, {$inc: {pid: 1}}, options, function(err, result) {
       var newPost = new Post();
@@ -39,10 +45,13 @@ router.post('/upload', function(req, res) {
       newPost.pub = pub;
       newPost.tid = tid;
       newPost.rep = 0;
+      newPost.time = moment().unix() - baseTime;
 
+console.log(3);
       User.findOne({uid: uid}, function(err, user) {
         if (err) throw err;
 
+console.log(4);
         newPost.author = user.name;
 
         newPost.save(function (err) {
@@ -61,6 +70,7 @@ router.post('/upload', function(req, res) {
                 return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
               });
 
+console.log(5);
               var elem = {uid: uid, name: user.name};
               for (j = 0 ; j < room[i].hws.length; j ++)
               {
@@ -73,19 +83,21 @@ router.post('/upload', function(req, res) {
                   room[i].save(function (err) {
                     if (err) throw err;
 
-                    var dirname = "images";
-                    var newPath = dirname + "/uploads/" + newPost.pid + ".jpg";
-                    fs.writeFile(newPath, data, function (err) {
-                      if(err){
-                        res.json({message: 'fail'});
-                      }else {
-                        res.json({message: 'success'});
-                      }
-                    });
+console.log(6);
                   });
                   break;
                 }
               }
+            }
+          });
+
+          var dirname = "images";
+          var newPath = dirname + "/uploads/" + newPost.pid + ".jpg";
+          fs.writeFile(newPath, data, function (err) {
+            if(err){
+              res.json({message: 'fail'});
+            }else {
+              res.json({message: 'success'});
             }
           });
         });

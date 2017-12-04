@@ -199,19 +199,18 @@ router.post('/joinRoom', function (req, res, next) {
       user.chatRooms.push(room_id);
       user.save(function(err) {
         if (err) throw err;
-      });
-    });
+        result.users.push({
+          uid : uid,
+          name : name,
+          last_cid : 0
+        });
 
-    result.users.push({
-      uid : uid,
-      name : name,
-      last_cid : 0
-    });
-
-    result.save(function (err) {
-      if (err) throw err;
-      res.json({
-        message: 'success'
+        result.save(function (err) {
+          if (err) throw err;
+          res.json({
+            message: 'success'
+          });
+        });
       });
     });
   });
@@ -264,7 +263,7 @@ router.get('/roomList', function (req, res, next) {
 
   if (name.length <= 0)
   {
-    var currentTime = time(moment().unix());
+    console.log("zero");
     Room.find({}, function(err, result) {
         if (err) throw err;
         res.json({

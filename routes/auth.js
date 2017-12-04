@@ -63,11 +63,27 @@ router.get('/info/user', function (req, res, next) {
 router.get('/setInfo/user', function(req, res, next) {
   var uid = req.query.uid;
   var name = req.query.name;
+  var gender = req.query.gender;
+  var year = req.query.year;
+  var days = req.query.days;
+  var isFirstLg = req.query.isFirstLg;
+  var q1 = req.query.questionnaire1;
+  var q2 = req.query.questionnaire2;
+  var q3 = req.query.questionnaire3;
+
 
   User.findOne({uid: uid}, function (err, user) {
     if (err) throw err;
 
     user.name = name;
+    user.gender = gender;
+    user.year = year;
+    user.days = days;
+    user.isFirstLg = isFirstLg;
+    user.questionnaires1 = q1;
+    user.questionnaires2 = q2;
+    user.questionnaires3 = q3;
+
     user.save(function (err) {
       if (err) throw err;
       res.json({
@@ -78,11 +94,13 @@ router.get('/setInfo/user', function(req, res, next) {
   });
 });
 
+
 router.get('/signup/user', function (req, res, next) {
   var id = req.query.id;
   var pw_hash = bcrypt.hashSync(req.query.pw);
   var create_time = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
   var name = req.query.name;
+  var isFirstLg = req.query.first_lg;
   var isError = false;
 
   if (id == null) {
@@ -124,6 +142,7 @@ router.get('/signup/user', function (req, res, next) {
         newUser.pw = pw_hash;
         newUser.name = name;
         newUser.type = 1;
+	newUser.isFirstLg = isFirstLg;
         newUser.chatRooms = [];
 
         newUser.save(function (err) {
