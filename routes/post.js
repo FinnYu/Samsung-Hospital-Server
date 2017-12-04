@@ -29,12 +29,8 @@ router.post('/upload', function(req, res) {
   var pub = req.body.public;
   var tid = req.body.tid;
 
-console.log(1);
-
   fs.readFile(req.files.image.path, function (err, data){
     var options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
-console.log(2);
 
     Id.findOneAndUpdate({}, {$inc: {pid: 1}}, options, function(err, result) {
       var newPost = new Post();
@@ -47,15 +43,23 @@ console.log(2);
       newPost.rep = 0;
       newPost.time = moment().unix() - baseTime;
 
-console.log(3);
       User.findOne({uid: uid}, function(err, user) {
         if (err) throw err;
 
-console.log(4);
         newPost.author = user.name;
 
-        newPost.save(function (err) {
+        var dirname = "images";
+        var newPath = dirname + "/uploads/" + newPost.pid + ".jpg";
+        fs.writeFile(newPath, data, function (err) {
           if (err) throw err;
+        });
+
+        newPost.save(function (err) {
+          if(err){
+            res.json({message: 'fail'});
+          }else {
+            res.json({message: 'success'});
+          }
 
           Room.find({
             room_id: {
@@ -70,7 +74,6 @@ console.log(4);
                 return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
               });
 
-console.log(5);
               var elem = {uid: uid, name: user.name};
               for (j = 0 ; j < room[i].hws.length; j ++)
               {
@@ -82,22 +85,10 @@ console.log(5);
 
                   room[i].save(function (err) {
                     if (err) throw err;
-
-console.log(6);
                   });
                   break;
                 }
               }
-            }
-          });
-
-          var dirname = "images";
-          var newPath = dirname + "/uploads/" + newPost.pid + ".jpg";
-          fs.writeFile(newPath, data, function (err) {
-            if(err){
-              res.json({message: 'fail'});
-            }else {
-              res.json({message: 'success'});
             }
           });
         });
@@ -188,5 +179,51 @@ router.get('/lists', function(req, res) {
   }
 });
 
+router.get('/remove', function(req, res) {
+  var uid = req.query.uid;
+  var pid = req.query.pid;
+
+  Post.findOne({pid: pid}).remove().exec(function (err, result) {
+    if (err) throw err;
+    res.json({message: 'success'});
+  });
+});
+
+
+router.get('/search', function (req, res, next) {
+  var uid = req.query.uid;
+  var memo = req.query.name;
+  var pub = req.query.pub;
+
+  if (memo.length > 0)
+    memo = memo.trim();
+
+  if (memo.length > 0)
+  {
+    var regex = '/*' + memo + '/*';
+    var cond;
+    if (pub == 'false') {
+      cond = {memo: new RegExp(regex), uid: uid};
+    }
+    else {
+      cond = {memo: new RegExp(regex), pub: true};
+    }
+
+    Post.find(cond, function(err, result) {
+      console.log(result);
+      if (err) throw err;
+      res.json({
+        message: 'success',
+        result: result
+      });
+    });
+  }
+  else {
+    res.json({
+      message: 'success',
+      result: []
+    });
+  }
+});
 
 module.exports = router;
