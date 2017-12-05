@@ -204,10 +204,16 @@ router.get('/search', function (req, res, next) {
     var regex = '/*' + memo + '/*';
     var cond;
     if (pub == 'false') {
-      cond = {memo: new RegExp(regex), uid: uid};
+      cond = { $or: [
+        {memo: new RegExp(regex)},
+        {author: new RegExp(regex)}
+      ], uid: uid};
     }
     else {
-      cond = {memo: new RegExp(regex), pub: true};
+      cond = {$or: [
+        {memo: new RegExp(regex)},
+        {author: new RegExp(regex)}
+      ], pub: true};
     }
 
     Post.find(cond, function(err, result) {
