@@ -52,44 +52,45 @@ router.post('/upload', function(req, res) {
         var newPath = dirname + "/uploads/" + newPost.pid + ".jpg";
         fs.writeFile(newPath, data, function (err) {
           if (err) throw err;
-          newPost.save(function (err) {
-            if(err){
-              res.json({message: 'fail'});
-              return;
-            }else {
-              res.json({message: 'success'});
+        });
+
+        newPost.save(function (err) {
+          if(err){
+            res.json({message: 'fail'});
+            return;
+          }else {
+            res.json({message: 'success'});
+          }
+
+          Room.find({
+            room_id: {
+              $in: user.chatRooms
             }
+          }, function(err, room) {
+            if (err) throw err;
 
-            Room.find({
-              room_id: {
-                $in: user.chatRooms
-              }
-            }, function(err, room) {
-              if (err) throw err;
+            for (i = 0 ; i < room.length ; i ++)
+            {
+              room[i].hws.sort(function (a, b) {
+                return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
+              });
 
-              for (i = 0 ; i < room.length ; i ++)
+              var elem = {uid: uid, name: user.name};
+              for (j = 0 ; j < room[i].hws.length; j ++)
               {
-                room[i].hws.sort(function (a, b) {
-                  return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
-                });
-
-                var elem = {uid: uid, name: user.name};
-                for (j = 0 ; j < room[i].hws.length; j ++)
+                if (room[i].hws[j].tid == tid && room[i].hws[j].done.findIndex(k => k.uid == uid) == -1)
                 {
-                  if (room[i].hws[j].tid == tid && room[i].hws[j].done.findIndex(k => k.uid == uid) == -1)
-                  {
-                    var target = room[i].hws[j];
-                    target.done.push(elem);
-                    room[i].hws.set(j, target);
+                  var target = room[i].hws[j];
+                  target.done.push(elem);
+                  room[i].hws.set(j, target);
 
-                    room[i].save(function (err) {
-                      if (err) throw err;
-                    });
-                    break;
-                  }
+                  room[i].save(function (err) {
+                    if (err) throw err;
+                  });
+                  break;
                 }
               }
-            });
+            }
           });
         });
       });
