@@ -147,7 +147,8 @@ router.post('/makeRoom', function (req, res, next) {
       newRoom.save(function (err) {
         if (err) throw err;
         res.json({
-          message: 'success'
+          message: 'success',
+          room_id: newRoom.room_id
         });
       });
     });
@@ -181,7 +182,7 @@ router.post('/joinRoom', function (req, res, next) {
 
     for (i = 0; i < result.users.length; i ++) {
       if (result.users[i].uid == uid) {
-        var user = room.users[i];
+        var user = result.users[i];
         if (user.uid == uid) {
           res.json({
             message: 'failure',
@@ -289,6 +290,8 @@ router.get('/roomList', function (req, res, next) {
 
 router.get('/myRooms', function (req, res, next) {
   var uid = req.query.uid;
+  // DEMO: NO AUTH FOR CREATE ROOM
+  /*
   User.findOne({uid: uid}, function(err, user){
     if (err) throw err;
 
@@ -302,6 +305,15 @@ router.get('/myRooms', function (req, res, next) {
         message: 'success',
         result: result
       });
+    });
+  });
+  */
+  Room.find({}, function(err, result) {
+    console.log(result);
+    if (err) throw err;
+    res.json({
+      message: 'success',
+      result: result
     });
   });
 });
